@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EverClean — Calzado para caballero</title>
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: "Segoe UI", system-ui, Arial, sans-serif;
+            background: #f5f6fa;
+            color: #2f3640;
+            margin: 0
+        }
+
+        header {
+            background: #273c75;
+            color: #fff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.25rem
+        }
+
+        .auth {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .auth input,
+        .auth select {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc
+        }
+
+        .auth button {
+            padding: 7px 10px;
+            border: none;
+            border-radius: 6px;
+            background: #0097e6;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .auth .secondary {
+            background: #718093
+        }
+
+        .auth .logout {
+            background: #c23616
+        }
+
+        .badge {
+            background: #44bd32;
+            color: #fff;
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 12px
+        }
+
+        .filtros {
+            background: #dcdde1;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .filtros input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc
+        }
+
+        .contenedor {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+            padding: 20px
+        }
+
+        .catalogo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px
+        }
+
+        .producto {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, .1);
+            padding: 10px;
+            text-align: center;
+            transition: transform .2s
+        }
+
+        .producto:hover {
+            transform: scale(1.02)
+        }
+
+        .producto img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px
+        }
+
+        .producto .acciones {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+            flex-wrap: wrap
+        }
+
+        .producto button {
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            background: #0097e6;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .producto .warn {
+            background: #e1b12c;
+            color: #222
+        }
+
+        .producto .danger {
+            background: #c23616
+        }
+
+        aside.carrito {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+            padding: 15px;
+            height: max-content;
+            position: sticky;
+            top: 16px
+        }
+
+        .carrito h3 {
+            text-align: center;
+            margin-top: 0
+        }
+
+        .carrito ul {
+            list-style: none;
+            padding: 0;
+            margin: 0
+        }
+
+        .carrito li {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid #eee;
+            padding: 6px 0;
+            font-size: 14px
+        }
+
+        .carrito button {
+            padding: 6px 8px;
+            border: none;
+            border-radius: 6px;
+            background: #718093;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .admin {
+            background: #dcdde1;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            align-items: end
+        }
+
+        .admin h3 {
+            grid-column: 1/-1;
+            margin: 0 0 6px
+        }
+
+        .admin input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #bbb
+        }
+
+        .admin button {
+            padding: 10px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #44bd32;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .muted {
+            opacity: .75
+        }
+
+        footer {
+            background: #273c75;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            margin-top: 30px
+        }
+
+        @media (max-width:900px) {
+            .contenedor {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>EverClean — Catálogo de Zapatos</h1>
+
+        <!-- Estado de sesión -->
+        <div id="sessionInfo" class="badge">Invitado</div>
+
+        <!-- Autenticación -->
+        <div class="auth" id="authBox">
+            <!-- Login -->
+            <input id="loginEmail" type="email" placeholder="Correo (login)" />
+            <input id="loginPass" type="password" placeholder="Contraseña" />
+            <button id="btnLogin">Iniciar sesión</button>
+
+            <!-- Registro -->
+            <input id="regEmail" type="email" placeholder="Correo (registro)" />
+            <input id="regPass" type="password" placeholder="Contraseña" />
+            <select id="regRole" title="Rol">
+                <option value="usuario">Usuario</option>
+                <option value="admin">Admin</option>
+            </select>
+            <button class="secondary" id="btnRegister">Crear cuenta</button>
+
+            <!-- Logout (se muestra al iniciar sesión) -->
+            <button class="logout" id="btnLogout" style="display:none">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <section class="filtros">
+        <input id="busqueda" placeholder="Buscar por nombre..." oninput="filtrarProductos()">
+        <input id="precioMax" type="number" min="0" placeholder="Precio máximo" oninput="filtrarProductos()">
+    </section>
+
+    <div class="contenedor">
+        <section class="catalogo" id="catalogo"></section>
+
+        <aside class="carrito">
+            <h3>🛒 Carrito</h3>
+            <ul id="listaCarrito"></ul>
+            <p><strong>Total:</strong> $<span id="total">0</span></p>
+            <button onclick="vaciarCarrito()">Vaciar carrito</button>
+        </aside>
+    </div>
+
+    <!-- Panel Admin (solo visible para admin) -->
+    <section class="admin" id="adminPanel" style="display:none">
+        <h3>Panel del Administrador</h3>
+        <input id="pNombre" placeholder="Nombre del zapato" />
+        <input id="pPrecio" type="number" placeholder="Precio" />
+        <input id="pImg" placeholder="URL de imagen (opcional)" />
+        <button onclick="agregarProducto()">Agregar Producto</button>
+        <span class="muted">Consejo: para editar/eliminar, usa los botones en cada tarjeta del producto.</span>
+    </section>
+
+    <footer>© 2025 EverClean | BETA</footer>
+
+    <script>
+        /* ======= Datos base ======= */
+        let productos = JSON.parse(localStorage.getItem("productosEver")) || [
+            { id: 1, nombre: "Oxford Clásico", precio: 899, img: "https://jeanpierre.com.mx/cdn/shop/products/oxford-clasico-664118.jpg?v=1750170718&width=2000" },
+            { id: 2, nombre: "Sneakers Urbanos", precio: 749, img: "https://urbanutility.mx/cdn/shop/files/CatalogoEdit2-2025-03-13T141335.311.png?v=1750483404" },
+            { id: 3, nombre: "Botines Negros", precio: 999, img: "https://cuadra.com.mx/cdn/shop/files/G08VNVN_venado_negro_bota_13_1080x1080.jpg?v=1749773433" },
+            { id: 4, nombre: "Zapatos de Piel", precio: 1099, img: "https://francis.com.mx/cdn/shop/files/F6H32102_ZANAHORIA_1.jpg?v=1694011235" }
+        ];
+        let carrito = JSON.parse(localStorage.getItem("carritoEver")) || [];
+        let users = JSON.parse(localStorage.getItem("usersEver")) || [];
+        let currentUser = JSON.parse(localStorage.getItem("currentUserEver")) || null;
+
+        /* Seeder de admin por si no existe */
+        if (!users.some(u => u.email === "admin@everclean.com")) {
+            users.push({ email: "admin@everclean.com", pass: "admin123", role: "admin" });
+            localStorage.setItem("usersEver", JSON.stringify(users));
+        }
+
+        /* ======= Utilitarios de persistencia ======= */
+        function saveProductos() { localStorage.setItem("productosEver", JSON.stringify(productos)); }
+        function saveCarrito() { localStorage.setItem("carritoEver", JSON.stringify(carrito)); }
+        function saveUsers() { localStorage.setItem("usersEver", JSON.stringify(users)); }
+        function saveCurrentUser() {
+            if (currentUser) localStorage.setItem("currentUserEver", JSON.stringify(currentUser));
+            else localStorage.removeItem("currentUserEver");
+        }
+
+        /* ======= Render de catálogo ======= */
+        const catalogo = document.getElementById("catalogo");
+        const listaCarrito = document.getElementById("listaCarrito");
+        const sessionInfo = document.getElementById("sessionInfo");
+        const adminPanel = document.getElementById("adminPanel");
+
+        function isAdmin() {
+            return currentUser && currentUser.role === "admin";
+        }
+
+        function pintarSession() {
+            if (currentUser) {
+                sessionInfo.textContent = `${currentUser.email} — ${currentUser.role.toUpperCase()}`;
+                document.getElementById("btnLogout").style.display = "inline-block";
+            } else {
+                sessionInfo.textContent = "Invitado";
+                document.getElementById("btnLogout").style.display = "none";
+            }
+            adminPanel.style.display = isAdmin() ? "grid" : "none";
+        }
+
+        function cardProducto(p, idxEnLista) {
+            const adminBtns = isAdmin() ? `
+      <button class="warn" onclick="editarProducto(${p.id})">Editar</button>
+      <button class="danger" onclick="eliminarProducto(${p.id})">Eliminar</button>
+  ` : "";
+            return `
+    <div class="producto">
+      <img src="${p.img}" alt="${p.nombre}">
+      <h4>${p.nombre}</h4>
+      <p>$${p.precio}</p>
+      <div class="acciones">
+        <button onclick="agregarAlCarrito(${p.id})">Agregar al carrito</button>
+        ${adminBtns}
+      </div>
+    </div>
+  `;
+        }
+
+        function mostrarCatalogo(lista = productos) {
+            catalogo.innerHTML = lista.map((p, i) => cardProducto(p, i)).join("");
+        }
+
+        /* ======= Filtros ======= */
+        function filtrarProductos() {
+            const texto = (document.getElementById("busqueda").value || "").toLowerCase();
+            const max = parseFloat(document.getElementById("precioMax").value || "0");
+            const filtrados = productos.filter(p => {
+                const coincide = p.nombre.toLowerCase().includes(texto);
+                const dentro = max > 0 ? p.precio <= max : true;
+                return coincide && dentro;
+            });
+            mostrarCatalogo(filtrados);
+        }
+
+        /* ======= Carrito ======= */
+        function agregarAlCarrito(id) {
+            const prod = productos.find(x => x.id === id);
+            if (!prod) return;
+            carrito.push(prod);
+            saveCarrito();
+            mostrarCarrito();
+        }
+
+        function mostrarCarrito() {
+            let total = 0;
+            listaCarrito.innerHTML = carrito.map((p, i) => {
+                total += p.precio;
+                return `<li><span>${p.nombre} - $${p.precio}</span> <button onclick="eliminarItem(${i})">❌</button></li>`;
+            }).join("");
+            document.getElementById("total").textContent = total;
+        }
+
+        function eliminarItem(i) {
+            carrito.splice(i, 1);
+            saveCarrito();
+            mostrarCarrito();
+        }
+
+        function vaciarCarrito() {
+            carrito = [];
+            saveCarrito();
+            mostrarCarrito();
+        }
+
+        /* ======= Admin: CRUD ======= */
+        function nextId() {
+            return productos.length ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+        }
+
+        function agregarProducto() {
+            if (!isAdmin()) return alert("Solo un ADMIN puede agregar productos.");
+            const nombre = document.getElementById("pNombre").value.trim();
+            const precio = parseFloat(document.getElementById("pPrecio").value);
+            const img = (document.getElementById("pImg").value || "").trim() || "https://images.unsplash.com/photo-1593032457869-9f2c72b6a7d7?auto=format&w=800";
+            if (!nombre || !(precio > 0)) return alert("Ingresa nombre y precio válidos.");
+            productos.push({ id: nextId(), nombre, precio, img });
+            saveProductos();
+            filtrarProductos(); // respeta filtros activos
+            alert("Producto agregado ✔️");
+        }
+
+        function editarProducto(id) {
+            if (!isAdmin()) return alert("Solo un ADMIN puede editar productos.");
+            const p = productos.find(x => x.id === id);
+            if (!p) return;
+            const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
+            if (nuevoNombre === null) return;
+            const nuevoPrecio = parseFloat(prompt("Nuevo precio:", p.precio));
+            if (!(nuevoPrecio > 0)) return alert("Precio inválido.");
+            const nuevaImg = prompt("Nueva URL de imagen:", p.img) || p.img;
+            p.nombre = nuevoNombre.trim() || p.nombre;
+            p.precio = nuevoPrecio;
+            p.img = nuevaImg.trim() || p.img;
+            saveProductos();
+            filtrarProductos();
+            alert("Producto actualizado ✔️");
+        }
+
+        function eliminarProducto(id) {
+            if (!isAdmin()) return alert("Solo un ADMIN puede eliminar productos.");
+            if (!confirm("¿Eliminar este producto?")) return;
+            productos = productos.filter(x => x.id !== id);
+            saveProductos();
+            filtrarProductos();
+            alert("Producto eliminado ✔️");
+        }
+
+        /* ======= Autenticación H5 ======= */
+        const loginEmail = document.getElementById("loginEmail");
+        const loginPass = document.getElementById("loginPass");
+        const regEmail = document.getElementById("regEmail");
+        const regPass = document.getElementById("regPass");
+        const regRole = document.getElementById("regRole");
+
+        document.getElementById("btnRegister").addEventListener("click", () => {
+            const email = (regEmail.value || "").trim().toLowerCase();
+            const pass = (regPass.value || "").trim();
+            const role = regRole.value === "admin" ? "admin" : "usuario";
+            if (!email || !pass) return alert("Completa correo y contraseña.");
+            if (users.some(u => u.email === email)) return alert("Ese correo ya está registrado.");
+            users.push({ email, pass, role });
+            saveUsers();
+            alert(`Cuenta creada como "${role}". Ahora inicia sesión.`);
+            regEmail.value = regPass.value = "";
+        });
+
+        document.getElementById("btnLogin").addEventListener("click", () => {
+            const email = (loginEmail.value || "").trim().toLowerCase();
+            const pass = (loginPass.value || "").trim();
+            const u = users.find(u => u.email === email && u.pass === pass);
+            if (!u) return alert("Credenciales inválidas.");
+            currentUser = { email: u.email, role: u.role };
+            saveCurrentUser();
+            loginEmail.value = loginPass.value = "";
+            pintarSession();
+            filtrarProductos();
+            alert(`Sesión iniciada como ${currentUser.role.toUpperCase()}`);
+        });
+
+        document.getElementById("btnLogout").addEventListener("click", () => {
+            currentUser = null;
+            saveCurrentUser();
+            pintarSession();
+            filtrarProductos();
+            alert("Sesión cerrada.");
+        });
+
+        /* ======= Init ======= */
+        pintarSession();
+        mostrarCatalogo();
+        mostrarCarrito();
+    </script>
+</body>
+
+</html>
