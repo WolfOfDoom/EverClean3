@@ -10,6 +10,19 @@
             box-sizing: border-box
         }
 
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
+
         body {
             font-family: "Segoe UI", system-ui, Arial, sans-serif;
             background: #f5f6fa;
@@ -233,10 +246,45 @@
                 grid-template-columns: 1fr
             }
         }
+
+        /* Drawer carrito */
+        #carritoDrawer {
+            position: fixed;
+            top: 56px;
+            width: 340px;
+            max-width: 90vw;
+            transition: right .25s ease;
+            z-index: 9999;
+            right: -360px;
+            /* Estado cerrado */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+        }
+
+        body.drawer-open #carritoDrawer {
+            right: 10px;
+        }
+
+        /* Estado abierto */
     </style>
 </head>
 
 <body>
+
+    <div id="toast" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #44bd32;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s ease;
+  z-index: 99999;
+"> Producto agregado</div>
 
     <header>
         <h1>EverClean — Catálogo de Zapatos</h1>
@@ -244,52 +292,49 @@
         <!-- Estado de sesión -->
         <div id="sessionInfo" class="badge">Invitado</div>
 
-        <!-- Autenticación -->
+        <!-- Cuenta / Carrito -->
         <div class="auth" id="authBox">
-            <!-- Login -->
-            <input id="loginEmail" type="email" placeholder="Correo (login)" />
-            <input id="loginPass" type="password" placeholder="Contraseña" />
-            <button id="btnLogin">Iniciar sesión</button>
+            <a href="auth.html"><button class="secondary">Mi cuenta (Login/Registro)</button></a>
+            <button id="btnLogout" class="logout" style="display:none">Cerrar sesión</button>
 
-            <!-- Registro -->
-            <input id="regEmail" type="email" placeholder="Correo (registro)" />
-            <input id="regPass" type="password" placeholder="Contraseña" />
-            <select id="regRole" title="Rol">
-                <option value="usuario">Usuario</option>
-                <option value="admin">Admin</option>
-            </select>
-            <button class="secondary" id="btnRegister">Crear cuenta</button>
-
-            <!-- Logout (se muestra al iniciar sesión) -->
-            <button class="logout" id="btnLogout" style="display:none">Cerrar sesión</button>
+            <!-- Botón hamburguesa del carrito -->
+            <button id="btnCartToggle" aria-label="Abrir carrito">🛒</button>
         </div>
+
     </header>
 
-    <section class="filtros">
-        <input id="busqueda" placeholder="Buscar por nombre..." oninput="filtrarProductos()">
-        <input id="precioMax" type="number" min="0" placeholder="Precio máximo" oninput="filtrarProductos()">
-    </section>
+    <main>
 
-    <div class="contenedor">
-        <section class="catalogo" id="catalogo"></section>
+        <section class="filtros">
+            <input id="busqueda" placeholder="Buscar por nombre..." oninput="filtrarProductos()">
+            <input id="precioMax" type="number" min="0" placeholder="Precio máximo" oninput="filtrarProductos()">
+        </section>
 
-        <aside class="carrito">
-            <h3>🛒 Carrito</h3>
-            <ul id="listaCarrito"></ul>
-            <p><strong>Total:</strong> $<span id="total">0</span></p>
-            <button onclick="vaciarCarrito()">Vaciar carrito</button>
-        </aside>
-    </div>
+        <div class="contenedor">
+            <section class="catalogo" id="catalogo"></section>
 
-    <!-- Panel Admin (solo visible para admin) -->
-    <section class="admin" id="adminPanel" style="display:none">
-        <h3>Panel del Administrador</h3>
-        <input id="pNombre" placeholder="Nombre del zapato" />
-        <input id="pPrecio" type="number" placeholder="Precio" />
-        <input id="pImg" placeholder="URL de imagen (opcional)" />
-        <button onclick="agregarProducto()">Agregar Producto</button>
-        <span class="muted">Consejo: para editar/eliminar, usa los botones en cada tarjeta del producto.</span>
-    </section>
+            <aside class="carrito" id="carritoDrawer">
+                <h3>🛒 Carrito</h3>
+                <ul id="listaCarrito"></ul>
+                <p><strong>Total:</strong> $<span id="total">0</span></p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap">
+                    <button onclick="vaciarCarrito()">Vaciar carrito</button>
+                    <a href="pago.html"><button class="warn">Comprar ahora</button></a>
+                </div>
+            </aside>
+
+        </div>
+
+        <!-- Panel Admin (solo visible para admin) -->
+        <section class="admin" id="adminPanel" style="display:none">
+            <h3>Panel del Administrador</h3>
+            <input id="pNombre" placeholder="Nombre del zapato" />
+            <input id="pPrecio" type="number" placeholder="Precio" />
+            <input id="pImg" placeholder="URL de imagen (opcional)" />
+            <button onclick="agregarProducto()">Agregar Producto</button>
+            <span class="muted">Consejo: para editar/eliminar, usa los botones en cada tarjeta del producto.</span>
+        </section>
+    </main>
 
     <footer>© 2025 EverClean | BETA</footer>
 
@@ -448,50 +493,87 @@
             alert("Producto eliminado ✔️");
         }
 
-        /* ======= Autenticación H5 ======= */
-        const loginEmail = document.getElementById("loginEmail");
-        const loginPass = document.getElementById("loginPass");
-        const regEmail = document.getElementById("regEmail");
-        const regPass = document.getElementById("regPass");
-        const regRole = document.getElementById("regRole");
+        /* ======= Sesión mínima en index (auth se hace en auth.html) ======= */
+        const btnLogoutEl = document.getElementById("btnLogout");
 
-        document.getElementById("btnRegister").addEventListener("click", () => {
-            const email = (regEmail.value || "").trim().toLowerCase();
-            const pass = (regPass.value || "").trim();
-            const role = regRole.value === "admin" ? "admin" : "usuario";
-            if (!email || !pass) return alert("Completa correo y contraseña.");
-            if (users.some(u => u.email === email)) return alert("Ese correo ya está registrado.");
-            users.push({ email, pass, role });
-            saveUsers();
-            alert(`Cuenta creada como "${role}". Ahora inicia sesión.`);
-            regEmail.value = regPass.value = "";
+        if (btnLogoutEl) {
+            btnLogoutEl.addEventListener("click", () => {
+                currentUser = null;
+                saveCurrentUser();
+                pintarSession();
+                filtrarProductos();
+                document.body.classList.remove("drawer-open");
+                alert("Sesión cerrada.");
+            });
+        }
+
+        /* ======= Carrito tipo drawer ======= */
+        const drawer = document.getElementById("carritoDrawer");
+        const btnCart = document.getElementById("btnCartToggle");
+
+        if (btnCart) {
+            btnCart.addEventListener("click", () => {
+                document.body.classList.toggle("drawer-open");
+            });
+        }
+
+        // Cerrar si clic fuera del drawer
+        document.addEventListener("click", (e) => {
+            if (
+                drawer &&
+                !drawer.contains(e.target) &&
+                e.target !== btnCart &&
+                document.body.classList.contains("drawer-open")
+            ) {
+                document.body.classList.remove("drawer-open");
+            }
         });
 
-        document.getElementById("btnLogin").addEventListener("click", () => {
-            const email = (loginEmail.value || "").trim().toLowerCase();
-            const pass = (loginPass.value || "").trim();
-            const u = users.find(u => u.email === email && u.pass === pass);
-            if (!u) return alert("Credenciales inválidas.");
-            currentUser = { email: u.email, role: u.role };
-            saveCurrentUser();
-            loginEmail.value = loginPass.value = "";
-            pintarSession();
-            filtrarProductos();
-            alert(`Sesión iniciada como ${currentUser.role.toUpperCase()}`);
-        });
 
-        document.getElementById("btnLogout").addEventListener("click", () => {
-            currentUser = null;
-            saveCurrentUser();
-            pintarSession();
-            filtrarProductos();
-            alert("Sesión cerrada.");
-        });
+        function showToast(text, color = "#44bd32") {
+            const toast = document.getElementById("toast");
+            toast.textContent = text;
+            toast.style.background = color;
+            toast.style.opacity = "1";
+            setTimeout(() => toast.style.opacity = "0", 1800);
+        }
+
+        function agregarAlCarrito(id) {
+            const prod = productos.find(x => x.id === id);
+            if (!prod) return;
+            carrito.push(prod);
+            saveCarrito();
+            mostrarCarrito();
+            showToast(`✅ ${prod.nombre} añadido al carrito`);
+        }
+
+
+        function eliminarItem(i) {
+            const removed = carrito[i];
+            carrito.splice(i, 1);
+            saveCarrito();
+            mostrarCarrito();
+            showToast(`❌ ${removed.nombre} eliminado del carrito`, "#c23616");
+        }
+
+        function vaciarCarrito() {
+            carrito = [];
+            saveCarrito();
+            mostrarCarrito();
+            showToast("🧹 Carrito vaciado", "#718093");
+        }
+
+
 
         /* ======= Init ======= */
         pintarSession();
         mostrarCatalogo();
         mostrarCarrito();
+        // Exponer para onclick en HTML generado
+        window.agregarAlCarrito = agregarAlCarrito;
+        window.eliminarItem = eliminarItem;
+        window.vaciarCarrito = vaciarCarrito;
+
     </script>
 </body>
 

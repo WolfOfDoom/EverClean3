@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EverClean — Pago</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        footer {
+            background: #273c75;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+        }
+
+        body {
+            font-family: Segoe UI, system-ui, Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0
+        }
+
+        header {
+            background: #273c75;
+            color: #fff;
+            padding: 14px 16px
+        }
+
+        .wrap {
+            max-width: 860px;
+            margin: 18px auto;
+            padding: 0 14px
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
+            margin-bottom: 14px
+        }
+
+        h2 {
+            margin: 0 0 10px;
+            color: #273c75;
+            font-size: 1.2rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th,
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+            font-size: 14px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width:900px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px
+        }
+
+        button {
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: #44bd32;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .secondary {
+            background: #718093
+        }
+
+        pre {
+            background: #111;
+            color: #0f0;
+            padding: 12px;
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 320px
+        }
+
+        .muted {
+            color: #666;
+            font-size: 12px
+        }
+
+        .bad {
+            color: #c23616
+        }
+    </style>
+</head>
+
+<body>
+    <header><strong>EverClean — Pago</strong></header>
+
+    <main>
+        <div class="wrap">
+
+            <div class="panel">
+                <h2>Tu carrito</h2>
+                <div id="cartEmpty" class="muted" style="display:none">Tu carrito está vacío.</div>
+                <table id="tblCart">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="total"><span>Subtotal</span><strong>$<span id="subtotal">0</span></strong></div>
+            </div>
+
+            <div class="grid">
+                <div class="panel">
+                    <h2>Método de envío</h2>
+                    <label><input type="radio" name="envio" value="estandar" checked> Estándar ($79)</label><br>
+                    <label><input type="radio" name="envio" value="express"> Express ($149)</label><br>
+                    <label><input type="radio" name="envio" value="tienda"> Recoger en tienda ($0)</label>
+                    <div class="total"><span>Costo de envío</span><strong>$<span id="costoEnvio">79</span></strong>
+                    </div>
+                    <div class="total" style="font-size:1.1rem"><span>Total</span><strong>$<span
+                                id="total">0</span></strong></div>
+                </div>
+
+                <div class="panel">
+                    <h2>Pago</h2>
+                    <p class="muted">Se aceptan todas las tarjetas de crédito/débito</p>
+                    <div class="actions">
+                        <button id="btnPagar">Pagar ahora</button>
+                        <a href="index.html"><button type="button" class="secondary">Seguir comprando</button></a>
+                    </div>
+                    <p id="msg" class="muted"></p>
+                </div>
+            </div>
+
+            <div class="panel" id="ticketBox" style="display:none">
+                <h2>Ticket ASCII</h2>
+                <pre id="ticket"></pre>
+                <div class="actions">
+                    <button id="btnCopiar">Copiar ticket</button>
+                    <a href="index.html"><button class="secondary">Volver al inicio</button></a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>© 2025 EverClean | BETA</footer>
+
+    <script>
+        // Estado compartido
+        let carrito = JSON.parse(localStorage.getItem("carritoEver")) || [];
+        let currentUser = JSON.parse(localStorage.getItem("currentUserEver")) || null;
+
+        const tbody = document.querySelector("#tblCart tbody");
+        const elSubtotal = document.getElementById("subtotal");
+        const elCostoEnvio = document.getElementById("costoEnvio");
+        const elTotal = document.getElementById("total");
+        const msg = document.getElementById("msg");
+        const ticketBox = document.getElementById("ticketBox");
+        const ticketPre = document.getElementById("ticket");
+
+        function costoPorEnvio(valor) {
+            if (valor === "express") return 149;
+            if (valor === "tienda") return 0;
+            return 79; // estandar
+        }
+
+        function renderCart() {
+            tbody.innerHTML = "";
+            if (!carrito.length) {
+                document.getElementById("cartEmpty").style.display = "block";
+                elSubtotal.textContent = "0";
+                calcularTotal();
+                return;
+            }
+            document.getElementById("cartEmpty").style.display = "none";
+            let subtotal = 0;
+            carrito.forEach(p => {
+                subtotal += Number(p.precio) || 0;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${p.nombre}</td><td>$${p.precio}</td>`;
+                tbody.appendChild(tr);
+            });
+            elSubtotal.textContent = subtotal;
+            calcularTotal();
+        }
+
+        function calcularTotal() {
+            const envio = document.querySelector('input[name="envio"]:checked').value;
+            const costo = costoPorEnvio(envio);
+            elCostoEnvio.textContent = costo;
+            const subtotal = Number(elSubtotal.textContent) || 0;
+            elTotal.textContent = subtotal + costo;
+        }
+
+        document.querySelectorAll('input[name="envio"]').forEach(r => {
+            r.addEventListener("change", calcularTotal);
+        });
+
+        function generarFolio() {
+            const now = new Date();
+            const y = now.getFullYear().toString().slice(-2);
+            const m = String(now.getMonth() + 1).padStart(2, "0");
+            const d = String(now.getDate()).padStart(2, "0");
+            const t = String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
+            const rnd = Math.floor(Math.random() * 999).toString().padStart(3, "0");
+            return `EC-${y}${m}${d}-${t}-${rnd}`;
+        }
+
+        function asciiTicket({ folio, fecha, usuario, items, envio, costoEnvio, subtotal, total }) {
+            const line = "+----------------------------------------+";
+            const center = (s) => { const w = 38; s = (" " + s + " "); const pad = Math.max(0, Math.floor((w - s.length) / 2)); return "|" + " ".repeat(pad) + s + " ".repeat(w - s.length - pad) + "|"; }
+            const rows = [];
+            rows.push(line);
+            rows.push(center("EVERCLEAN — TICKET"));
+            rows.push(line);
+            rows.push(`| FOLIO: ${folio.padEnd(33)}|`);
+            rows.push(`| FECHA: ${fecha.padEnd(33)}|`);
+            rows.push(`| CLIENTE: ${(usuario || "Invitado").padEnd(30)}|`);
+            rows.push(line);
+            rows.push(center("ARTÍCULOS"));
+            rows.push(line);
+            items.forEach(it => {
+                const name = (it.nombre || "Item").slice(0, 26);
+                const price = `$${it.precio}`.padStart(8);
+                rows.push(`| ${name.padEnd(28)} ${price} |`);
+            });
+            rows.push(line);
+            rows.push(`| Subtotal: ${String("$" + subtotal).padStart(28)} |`);
+            rows.push(`| Envío (${envio}): ${String("$" + costoEnvio).padStart(21)} |`);
+            rows.push(`| TOTAL: ${String("$" + total).padStart(30)} |`);
+            rows.push(line);
+            rows.push(center("¡GRACIAS POR TU COMPRA!"));
+            rows.push(line);
+            return rows.join("\n");
+        }
+
+        document.getElementById("btnPagar").addEventListener("click", () => {
+            if (!carrito.length) {
+                msg.innerHTML = '<span class="bad">No hay artículos en el carrito.</span>';
+                return;
+            }
+            const envio = document.querySelector('input[name="envio"]:checked').value;
+            const costoEnv = costoPorEnvio(envio);
+            const subtotal = Number(elSubtotal.textContent) || 0;
+            const total = subtotal + costoEnv;
+
+            // Confirmación de pago simulado
+            alert("Pago realizado con éxito");
+
+            const folio = generarFolio();
+            const fecha = new Date().toLocaleString();
+            const usuario = currentUser?.email || "Invitado";
+
+            const txt = asciiTicket({
+                folio, fecha, usuario,
+                items: carrito,
+                envio, costoEnvio: costoEnv,
+                subtotal, total
+            });
+
+            ticketPre.textContent = txt;
+            ticketBox.style.display = "block";
+            msg.textContent = "Tu pago fue procesado. Abajo está tu ticket";
+
+            // Limpia carrito después de generar ticket
+            carrito = [];
+            localStorage.setItem("carritoEver", JSON.stringify(carrito));
+        });
+
+        document.getElementById("btnCopiar").addEventListener("click", async () => {
+            await navigator.clipboard.writeText(ticketPre.textContent);
+            alert("Ticket copiado al portapapeles.");
+        });
+
+        // Init
+        renderCart();
+    </script>
+</body>
+
+</html>
