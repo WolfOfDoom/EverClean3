@@ -290,7 +290,7 @@
 
             const folio = generarFolio();
             const fecha = new Date().toLocaleString();
-            const usuario = currentUser?.email || "Invitado";
+            const usuario = currentUser?.name || currentUser?.email || "Invitado";
 
             const txt = asciiTicket({
                 folio, fecha, usuario,

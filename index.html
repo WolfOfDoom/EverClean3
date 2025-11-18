@@ -109,8 +109,9 @@
 
         .catalogo {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            /* Espaciado mejorado para pantallas pequeñas */
         }
 
         .producto {
@@ -553,8 +554,15 @@
             carrito.splice(i, 1);
             saveCarrito();
             mostrarCarrito();
+
+            // Si el carrito queda vacío, aseguramos que el total se vea como "0"
+            if (carrito.length === 0) {
+                document.getElementById("total").textContent = "0";
+            }
+
             showToast(`❌ ${removed.nombre} eliminado del carrito`, "#c23616");
         }
+
 
         function vaciarCarrito() {
             carrito = [];

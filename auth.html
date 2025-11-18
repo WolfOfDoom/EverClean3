@@ -136,6 +136,11 @@
 
             <form id="formLogin">
                 <div class="field">
+                    <label>Nombre</label>
+                    <input id="regName" type="text" required>
+                </div>
+
+                <div class="field">
                     <label>Correo</label>
                     <input id="loginEmail" type="email" required>
                 </div>
@@ -150,6 +155,11 @@
             </form>
 
             <form id="formRegister" style="display:none">
+                <div class="field">
+                    <label>Nombre</label>
+                    <input id="regName" type="text" required>
+                </div>
+
                 <div class="field">
                     <label>Correo</label>
                     <input id="regEmail" type="email" required>
@@ -203,8 +213,11 @@
 
         tabLogin.addEventListener("click", showLogin);
         tabRegister.addEventListener("click", showRegister);
-        document.getElementById("goRegister").addEventListener("click", (e) => { e.preventDefault(); showRegister(); });
-        document.getElementById("goLogin").addEventListener("click", (e) => { e.preventDefault(); showLogin(); });
+        const goRegister = document.getElementById("goRegister");
+        const goLogin = document.getElementById("goLogin");
+
+        if (goRegister) goRegister.addEventListener("click", (e) => { e.preventDefault(); showRegister(); });
+        if (goLogin) goLogin.addEventListener("click", (e) => { e.preventDefault(); showLogin(); });
 
         // Seeder admin
         if (!users.some(u => u.email === "admin@everclean.com")) {
@@ -215,12 +228,13 @@
         // Registro
         formRegister.addEventListener("submit", (e) => {
             e.preventDefault();
+            const name = document.getElementById("regName").value.trim();
             const email = document.getElementById("regEmail").value.trim().toLowerCase();
             const pass = document.getElementById("regPass").value.trim();
             const role = document.getElementById("regRole").value === "admin" ? "admin" : "usuario";
             if (!email || !pass) return alert("Completa correo y contraseña.");
             if (users.some(u => u.email === email)) return alert("Ese correo ya está registrado.");
-            users.push({ email, pass, role });
+            users.push({ email, pass, role, name });
             saveUsers();
             alert(`Cuenta creada como "${role}". Ahora inicia sesión.`);
             showLogin();
@@ -229,15 +243,21 @@
         // Login
         formLogin.addEventListener("submit", (e) => {
             e.preventDefault();
+
             const email = document.getElementById("loginEmail").value.trim().toLowerCase();
             const pass = document.getElementById("loginPass").value.trim();
+
+            if (!email || !pass) {
+                alert("Por favor completa todos los campos.");
+                return;
+            }
+
             const u = users.find(u => u.email === email && u.pass === pass);
-            if (!u) return alert("Credenciales inválidas.");
-            currentUser = { email: u.email, role: u.role };
-            saveCurrentUser();
-            alert(`Sesión iniciada como ${currentUser.role.toUpperCase()}`);
-            window.location.href = "index.html";
-        });
+            if (!u) {
+                alert("Credenciales inválidas.");
+                return;
+            }
+
     </script>
 </body>
 
